@@ -41,6 +41,8 @@ Any `error` finding or a majority `fail` blocks the pass.
 **verify** — Clean-clone, real-environment check: clones the repo fresh, runs the README setup
 verbatim, boots the thing, exercises a happy path and an error path, and records evidence to
 `verify.md`. "I made the change" is not evidence; the grader runs it from a clean clone, so we do too.
+On a PASS it automatically opens (or updates) a pull request for the feature branch — the standard end
+of the loop.
 
 ## The keystone
 

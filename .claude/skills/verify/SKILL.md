@@ -36,6 +36,12 @@ tests whether setup is actually reproducible and whether everything needed was c
    confirm it fails gracefully and as documented — not with an unhandled crash.
 6. **Record evidence.** Write everything to `verify.md`: commands, outputs, and a verdict per path.
    Evidence means reproducible commands and their actual output, not assertions.
+7. **Open a pull request.** Once verification PASSES, automatically open a PR for the work — this is
+   the standard end of the Build Loop, no need to ask. Push the feature branch and run
+   `gh pr create --base main --head <branch>` with a simple title and body (a one-line summary plus a
+   short bullet list; link `verify.md` and `review.json`). If a PR for the branch already exists,
+   update it instead of creating a duplicate (`gh pr edit`). Do not push to or open a PR straight
+   against `main`. If verification FAILS, do not open a PR — route back via `review-gate`'s routing.
 
 ## verify.md structure
 
@@ -72,7 +78,8 @@ Result: graceful / not graceful
 - The work was cloned fresh and set up from the README with no undocumented steps.
 - Happy path and error path were both exercised with recorded, reproducible evidence.
 - `verify.md` exists with a verdict per path; failures route back via `review-gate`'s routing.
+- On PASS, a pull request has been opened (or updated) for the feature branch.
 
 ## Next stage
 
-If verification passes, the unit of work is **done**.
+If verification passes, the PR is opened automatically and the unit of work is **done**.
