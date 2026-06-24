@@ -47,9 +47,13 @@ async function load() {
     rows.innerHTML = renderRows(body.data);
   }
 
-  const from = body.total === 0 ? 0 : (body.page - 1) * body.pageSize + 1;
-  const to = (body.page - 1) * body.pageSize + body.data.length;
-  status.textContent = `Showing ${from}–${to} of ${body.total} · page ${body.page} of ${body.totalPages}`;
+  if (body.data.length === 0) {
+    status.textContent = `No results on this page · ${body.total} total`;
+  } else {
+    const from = (body.page - 1) * body.pageSize + 1;
+    const to = from + body.data.length - 1;
+    status.textContent = `Showing ${from}–${to} of ${body.total} · page ${body.page} of ${body.totalPages}`;
+  }
 
   prev.disabled = !body.hasPrev;
   next.disabled = !body.hasNext;
