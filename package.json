@@ -19,9 +19,13 @@
     "knip": "knip"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@biomejs/biome": "2.5.1",
+    "@playwright/test": "1.61.1",
+    "@types/node": "^26.0.0",
     "knip": "6.18.0",
     "turbo": "2.9.18",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
   }
 }
