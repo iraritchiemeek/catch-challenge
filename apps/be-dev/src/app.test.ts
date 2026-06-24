@@ -72,3 +72,22 @@ describe("GET /api/customers", () => {
     expect(body).toMatchObject({ total: 25, hasNext: false, hasPrev: true });
   });
 });
+
+describe("static frontend", () => {
+  it("serves the HTML page at / wired to the stylesheet and script", async () => {
+    const res = await seededApp().request("/");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    expect(html).toContain("/styles.css");
+    expect(html).toContain("/app.js");
+  });
+
+  it("serves the browser modules with a JavaScript content type", async () => {
+    for (const path of ["/app.js", "/render.js"]) {
+      const res = await seededApp().request(path);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toContain("javascript");
+    }
+  });
+});

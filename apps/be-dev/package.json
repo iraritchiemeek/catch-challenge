@@ -22,7 +22,6 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.13",
     "@types/node": "26.0.0",
-    "tailwindcss": "^4.1.13",
     "tsx": "4.22.4",
     "typescript": "6.0.3",
     "vitest": "4.1.9"
