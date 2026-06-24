@@ -1,84 +1,117 @@
-# Plan: Build Loop monorepo scaffold & tooling
+# Plan: Paginated GitHub org repo listing (catch-design/jamstack-test challenge)
 
 ## Task brief
-Conversation task brief: "Set up the Build Loop monorepo scaffold and tooling so the workflow is
-runnable — stop before building the challenge features." Repo conventions: `CLAUDE.md`, `PROCESS.md`.
+- Challenge: https://github.com/catch-design/jamstack-test
+- Build in `apps/jamstack` (Next.js App Router, the repo's Jamstack app).
+- User constraints layered on top of the brief:
+  - Components must come from **Tailwind Plus** — never invent design decisions; take layout/markup
+    from a real Tailwind Plus UI block and only map data into it.
+  - Everything **accessible**, verified with **@axe-core/cli** (in addition to the existing
+    `@axe-core/playwright` e2e check).
+  - **No dark mode.**
+  - Code must be **DRY**.
+  - Follow repo tech rules: pnpm, strict TS, Biome, Vitest (`*.test.ts`), Playwright (`*.spec.ts`).
 
-## Acceptance criteria (verbatim from brief)
-- [ ] `pnpm install`, `pnpm lint`, `pnpm typecheck`, and `pnpm test` all succeed from a clean clone.
-- [ ] No `<placeholder>` remains in `.claude/skills/` or `CLAUDE.md`; the commands there match real scripts.
-- [ ] `CLAUDE.md` keeps the Build Loop conventions and gains the tech + quality rules.
-- [ ] Git history is a clean series of one-commit-per-step.
-- [ ] Final report: the commands wired in, what each app skeleton contains, and the exact next step to start challenge one (`/plan <brief>`).
+## Acceptance criteria (verbatim from brief + user)
+- [ ] "Utilize the GitHub API to fetch and display at least 30 repositories, showing 10 results at a time."
+- [ ] Uses the endpoint `https://api.github.com/orgs/github/repos?sort=name&per_page=10&page=1`.
+- [ ] "Implement navigation controls—either 'Next'/'Previous' buttons or infinite scroll—to manage
+  data display across multiple pages."
+- [ ] "Style the list to resemble the appearance of GitHub's pinned items or the repository list on
+  their org overview page." Simplified aesthetics acceptable; exclude complex graphs and precise iconography.
+- [ ] Accessibility: "Employ semantic HTML, ARIA roles, and keyboard navigation support."
+- [ ] Error Handling: "Gracefully manage and communicate API failures or data issues."
+- [ ] Styling: responsive layout (custom CSS or compatible library).
+- [ ] "Provide clear setup and execution instructions."
+- [ ] (User) All visual components sourced from Tailwind Plus; no self-authored design.
+- [ ] (User) Passes `@axe-core/cli` with zero violations.
+- [ ] (User) No dark mode. DRY code.
 
 ## Approach
-Build the monorepo bottom-up so each commit leaves the workspace in a runnable state: root workspace +
-Turborepo + strict base `tsconfig` first, then Biome (lint+format), then the quality pass
-(`/setup-agentic-quality` → Knip + tsconfig hardening, adapted to Biome), then test tooling (Vitest +
-Playwright), then the two app skeletons, then wire the real commands into the skill placeholders and
-merge CLAUDE.md. Root scripts are thin Turborepo pass-throughs (`turbo run <task>`) so adding the
-challenge apps later needs no root changes.
+**Fetch on the server, paginate with real links.** The page is a Server Component that reads
+`?page=N` from `searchParams`, fetches that page from the GitHub API, and renders the list. "Next" and
+"Previous" are ordinary `<a>` links to `?page=N±1`. This is the most accessible and DRY option: the
+controls are real, keyboard-operable, focusable links that work without client JS — no `useState`, no
+client fetch waterfall, no ARIA gymnastics to re-create link semantics. It also fits Next.js App Router
+and the "Jamstack" framing. Trade-off accepted: a full navigation per page instead of in-place updates;
+acceptable here and simpler than client state + infinite scroll, and the brief explicitly permits
+Next/Previous.
 
-This is scaffold/infra work, so "TDD" is interpreted honestly: the proving tests are (a) a per-app
-**smoke test** (Vitest) that fails before the app skeleton exists and passes after, (b) a Playwright
-**e2e smoke** against the jamstack page, and (c) the brief's own definition of done — the four root
-scripts succeeding from a clean clone, which is exercised in the `verify` stage. I will not invent
-unit tests for static config files; instead each config step is verified by running its command and
-showing it fail (RED: command/script missing) then pass (GREEN: configured).
+**Keep the data layer pure and isolated** in `apps/jamstack/lib/github.ts`: a `buildReposUrl(page)`
+URL builder, a `Repo` type (narrowed to the fields we render), and `fetchRepos(page)` returning a typed
+`{ repos, page, hasPrev, hasNext }` result or throwing a typed `GitHubError`. `hasNext` is derived from
+"received a full page of `per_page` items"; `hasPrev` from `page > 1`. This isolates all logic that is
+worth unit-testing from React, keeps the component thin, and is the single source of the per-page count
+(DRY).
 
-Trade-offs accepted: Biome replaces the oxlint+Prettier pair that `/setup-agentic-quality` installs by
-default (one tool, less config drift); Knip and tsconfig hardening from that skill are kept. No
-challenge features (no Drizzle schema, no CSV import, no GitHub fetch, no pagination) — only enough app
-skeleton that the root scripts resolve and run.
+**Design from Tailwind Plus only.** Two blocks:
+1. A **stacked list** (Application UI → Lists → Stacked lists) for the repo rows — name, description,
+   language, star count mapped into the block's slots.
+2. A **pagination** block (Application UI → Navigation → Pagination, the simple Previous/Next card
+   footer variant) for the controls.
+Both are extracted verbatim via the `tailwind-plus` skill; I map repo data into them and strip any
+`dark:` variants (no dark mode). No bespoke layout is invented.
 
-Tool versions and exact config are confirmed via **context7** at implementation time (Next.js,
-Turborepo, Biome, Vitest, Playwright, Hono) rather than from memory.
+**Styling = Tailwind CSS v4.** Add Tailwind v4 to `apps/jamstack` (`tailwindcss` +
+`@tailwindcss/postcss`, `@import "tailwindcss"` in a global stylesheet, no dark mode config). Exact
+v4 wiring confirmed via context7 at implementation time. Light-mode only.
+
+**Error handling.** `fetchRepos` throws `GitHubError` on non-OK responses (covering rate-limit 403 and
+404). The page catches it and renders an accessible error region (`role="alert"`) with a plain-language
+message and a retry link, instead of crashing.
 
 ## Decomposition
-Each numbered step is one commit.
+Each step is one RED → GREEN → REFACTOR cycle and one commit, on branch `feat/github-repos-listing`.
 
-1. **Workspace root** — `pnpm-workspace.yaml` (`apps/*`), root `package.json` (private, `packageManager`,
-   Turborepo dev dep, scripts: `dev/build/test/lint/typecheck/e2e/format/check`), `turbo.json` pipeline,
-   `tsconfig.base.json` (strict), root `tsconfig.json`, `.gitignore`.
-   *Verified by:* `pnpm install` succeeds; `pnpm turbo run build --dry` resolves the (empty) graph.
-2. **Biome** — `biome.json` at root (lint + format), root `lint`/`format`/`check` scripts call Biome.
-   *Verified by:* `pnpm lint` runs clean on the repo (RED first: script absent).
-3. **Quality pass** — run `/setup-agentic-quality`; keep Knip (`knip.json`) + tsconfig hardening; drop its
-   oxlint/Prettier in favour of Biome; merge its CLAUDE.md output into existing `CLAUDE.md` without
-   clobbering the Build Loop conventions.
-   *Verified by:* `pnpm knip` runs; `pnpm typecheck` passes; CLAUDE.md still contains the Build Loop section.
-4. **Test tooling** — root Vitest config (workspace-aware) + Playwright config (`webServer` boots jamstack),
-   root `test` (vitest) and `e2e` (playwright) scripts.
-   *Verified by:* `pnpm test` passes (initially zero/one trivial test), `pnpm e2e` is invokable.
-5. **apps/be-dev skeleton** — minimal Hono-on-Node app (`src/index.ts` with a health route), `package.json`,
-   `tsconfig.json` extending base, a Vitest smoke test asserting the health route returns 200.
-   *Verified by:* RED (smoke test fails — no app) → GREEN (route returns 200); `pnpm test` includes it.
-6. **apps/jamstack skeleton** — minimal Next.js App Router app (`app/layout.tsx`, `app/page.tsx`),
-   `package.json`, `tsconfig.json` extending base, a Vitest unit smoke test + a Playwright e2e smoke
-   (page loads, has a heading, basic a11y assertion).
-   *Verified by:* RED (smoke fails) → GREEN; `pnpm test` + `pnpm e2e` pass.
-7. **Wire skills + finalise CLAUDE.md** — replace every `<placeholder>` in `.claude/skills/*/SKILL.md`
-   and `CLAUDE.md` with the real commands; confirm the tech/quality rules are documented.
-   *Verified by:* `grep -r '<placeholder>\|<fast .*command>\|<.*command>' .claude CLAUDE.md` returns nothing.
+1. **Tailwind v4 wiring** — add deps, `app/globals.css` with `@import "tailwindcss"`, PostCSS config,
+   import the stylesheet in `layout.tsx`. *Verified by:* `pnpm build` succeeds; existing e2e a11y still
+   green; a Vitest assertion that the globals stylesheet imports tailwind. (Config step — proven by its
+   command, per repo convention.)
+2. **Data layer `lib/github.ts`** — `buildReposUrl`, `Repo`, `GitHubError`, `fetchRepos`.
+   *Verified by (RED→GREEN):* `lib/github.test.ts` — URL has `sort=name&per_page=10&page=N`; success
+   parses repos and computes `hasPrev`/`hasNext`; a full page implies `hasNext`, a short page does not;
+   non-OK response throws `GitHubError`. Fetch is stubbed (`vi.fn`), no live network.
+3. **Repo list + pagination UI** — Tailwind Plus stacked-list + pagination components as
+   `RepoList.tsx` / `Pagination.tsx`, wired into `app/page.tsx` reading `searchParams.page`.
+   *Verified by:* component unit test(s) rendering a known repo set asserts 10 rows, repo name/desc
+   present, Prev disabled/absent on page 1, Next present; plus the e2e below.
+4. **Error UI** — page renders `role="alert"` region when `fetchRepos` throws.
+   *Verified by:* unit test of the error branch; e2e error-path test with the GitHub route mocked to 403.
+5. **e2e + accessibility** — Playwright `e2e/repos.spec.ts`: mock `api.github.com` so tests are
+   deterministic (no live rate-limited calls); assert 10 rows render, Next link navigates to page 2,
+   Previous appears, keyboard can reach pagination, and **axe finds zero violations** on the list page
+   and the error page. *Verified by:* `pnpm e2e` green.
+6. **@axe-core/cli pass** — add an `a11y` script that runs `@axe-core/cli` against the running app;
+   record a clean run. *Verified by:* `pnpm --filter jamstack a11y` (or root script) reports 0 violations.
+7. **README + docs** — document setup/run, the architecture (server fetch + link pagination), the
+   Tailwind Plus sourcing, GitHub API rate-limit note, and the a11y verification command.
+   *Verified by:* README review; `verify` stage runs it from a clean clone.
 
 ## Test strategy
 | Acceptance criterion | Test(s) | Level |
 |---|---|---|
-| Root scripts succeed from clean clone | Run `pnpm install/lint/typecheck/test` in a fresh clone (verify stage) | e2e / process |
-| be-dev skeleton runs | Vitest smoke: Hono health route → 200 | unit/integration |
-| jamstack skeleton runs | Vitest unit smoke + Playwright e2e: page loads, heading present, a11y check | unit + e2e |
-| No `<placeholder>` remains | `grep` over `.claude/skills/` and `CLAUDE.md` returns empty | static check |
-| CLAUDE.md keeps Build Loop + gains tech rules | grep for "Build Loop" section + presence of tech/quality sections | static check |
-| Clean one-commit-per-step history | `git log --oneline` shows the 7 scoped commits | review |
+| Correct endpoint + params (`sort=name&per_page=10&page=N`) | `github.test.ts` URL builder | unit |
+| Fetch ≥30 repos, 10 at a time | `github.test.ts` parses 10/page; e2e shows 10 rows; Next→page 2 | unit + e2e |
+| Next/Previous controls | unit (Prev absent on p1, Next present); e2e Next navigates, Prev appears | unit + e2e |
+| Looks like GitHub org list | Tailwind Plus stacked list; e2e snapshot of name/desc/lang/stars present | e2e (visual-ish) |
+| Accessibility (semantic/ARIA/keyboard) | `@axe-core/playwright` (list + error pages) + `@axe-core/cli`; e2e keyboard reaches Next | e2e + cli |
+| Error handling | `github.test.ts` throws on non-OK; page renders `role="alert"`; e2e 403 mock | unit + e2e |
+| Responsive layout | Tailwind responsive classes from the block; e2e at mobile + desktop viewport | e2e |
+| Setup instructions | README; clean-clone run in `verify` | process |
+| Tailwind Plus only / no dark mode / DRY | review-gate (no `dark:` classes; single per_page constant) | review |
 
-## Open questions (resolved at approval)
-1. **Biome vs the skill's default formatter** — RESOLVED: Biome for both lint+format, replacing the
-   skill's oxlint/Prettier. (Per brief.)
-2. **e2e in the must-pass set** — RESOLVED: `pnpm e2e` (Playwright) is wired and invokable, exercised in
-   `verify`, but NOT a clean-clone hard gate. The hard gate stays install/lint/typecheck/test.
-3. **Branch** — RESOLVED: `chore/build-loop-scaffold`.
+## Open questions (RESOLVED at approval)
+1. **Pagination** — Server-rendered page + Prev/Next using **Next.js `<Link>`** (client-side App Router
+   navigation, page still server-renders the data per `?page=N`). _Confirmed by user._
+2. **Tailwind** — **v4**. _Confirmed by user._
+3. **e2e data** — Hit the **live** GitHub API in e2e (real end-to-end). Mitigate the 60 req/hr
+   unauthenticated rate limit by keeping e2e GitHub calls to a minimum and documenting the risk.
+   _Confirmed by user._
+4. **Branch** — `feat/github-repos-listing`.
+5. **Docs-first** — Pull current docs from **context7** (Next.js App Router, Tailwind v4, @axe-core,
+   Playwright) into context **before writing any code**. _User requirement._
 
 ## Approval
 - [x] Approved by iraritchiemeek on 2026-06-24
-- Feedback: Use recommended defaults for all three open questions (Biome for both; e2e wired but not a
-  hard gate; branch `chore/build-loop-scaffold`).
+- Feedback: Prev/Next via Next.js `<Link>`; hit live GitHub in e2e; Tailwind v4; load context7 docs
+  (Next.js, axe, etc.) before writing any code.
