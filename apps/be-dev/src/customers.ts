@@ -1,4 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
+import { paginate } from "./pagination.js";
 
 // A customer record as served by the API — every column from the CSV. Empty
 // CSV fields are stored as NULL, so the nullable columns are typed accordingly.
@@ -26,12 +27,13 @@ export function getCustomers(
   page: number,
   pageSize: number,
 ): { data: Customer[]; total: number } {
-  const offset = (page - 1) * pageSize;
-  const data = db
-    .prepare("SELECT * FROM customers ORDER BY id LIMIT ? OFFSET ?")
-    .all(pageSize, offset) as Customer[];
   const { total } = db.prepare("SELECT count(*) AS total FROM customers").get() as {
     total: number;
   };
+  // Reuse the one place offset math lives, rather than recomputing it here.
+  const { offset } = paginate(total, page, pageSize);
+  const data = db
+    .prepare("SELECT * FROM customers ORDER BY id LIMIT ? OFFSET ?")
+    .all(pageSize, offset) as unknown as Customer[];
   return { data, total };
 }
