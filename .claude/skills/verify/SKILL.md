@@ -22,14 +22,14 @@ tests whether setup is actually reproducible and whether everything needed was c
 
 ## Steps
 
-1. **Clone fresh.** Clone the repo into a throwaway directory (`<clean clone command>`), separate from
+1. **Clone fresh.** Clone the repo into a throwaway directory (`git clone <repo-url> /tmp/verify-<sha> && cd /tmp/verify-<sha>`), separate from
    your working tree. Do not copy files in. Check out the exact sha under review.
 2. **Follow the README verbatim.** Run the setup steps exactly as written, in order, with no extra
    steps from memory. If a step is missing, undocumented, or fails, that is a finding — record it and
    route back (it likely means `return-to-verify` work or a `tdd`/docs fix).
-   - Setup: `<setup command>` · Install: `<install command>`
+   - Install: `pnpm install` · Gate: `pnpm lint && pnpm typecheck && pnpm test` · e2e setup (first run): `pnpm exec playwright install chromium`
 3. **Boot it.** Start the application or run the entrypoint as a user would.
-   - Run: `<run command>`
+   - Run: `pnpm dev` (all apps) · single app: `pnpm --filter jamstack dev` / `pnpm --filter be-dev dev` · e2e: `pnpm e2e`
 4. **Exercise the happy path.** Perform the primary success scenario from the acceptance criteria.
    Record the input, the action, and the observed output (paste output or attach a screenshot path).
 5. **Exercise an error path.** Trigger a representative failure (bad input, missing resource) and

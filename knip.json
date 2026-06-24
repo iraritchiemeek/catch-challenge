@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "project": "*.ts"
+    },
+    "apps/be-dev": {
+      "project": "src/**/*.ts"
+    },
+    "apps/jamstack": {
+      "project": "**/*.{ts,tsx}"
+    }
+  }
+}
