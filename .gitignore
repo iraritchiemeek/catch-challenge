@@ -3,6 +3,10 @@ node_modules/
 
 # Build output
 dist/
+
+# Generated SQLite database (created by `pnpm --filter be-dev import`)
+*.db
+*.db-journal
 .next/
 out/
 *.tsbuildinfo
