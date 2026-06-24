@@ -26,12 +26,12 @@ has never been seen red might be asserting nothing.
 1. **RED — write one failing test.** Pick the next step from `plan.md`. Write the smallest test that
    asserts the requirement. **Run it and show it failing**, with the failure message. Confirm it
    fails for the intended reason (assertion not met), not an import error or typo.
-   - Test command: `<fast test command>`
+   - Test command: `pnpm test` (single test/project: `pnpm vitest run <path>` or `pnpm vitest --project <app>`)
 2. **GREEN — make it pass.** Write the minimum code to pass the test. No extra features, no
    speculative generality. Run the test and show it passing.
 3. **REFACTOR — clean up under green.** With the test passing, improve names, remove duplication,
    simplify. Re-run the test (and the suite) after each change to confirm it stays green.
-   - Lint: `<fast lint command>` · Typecheck: `<typecheck command>`
+   - Lint: `pnpm lint` (fix: `pnpm format`) · Typecheck: `pnpm typecheck`
 4. **Commit the step.** A small, scoped commit (test + implementation together, or test first then
    implementation) with a message that names the requirement covered.
 5. Repeat for the next step until every acceptance criterion in `plan.md` is covered.
@@ -48,7 +48,7 @@ has never been seen red might be asserting nothing.
 
 - Every acceptance criterion in `plan.md` is mapped to at least one test that was seen to fail then
   pass.
-- `<fast test command>`, `<fast lint command>`, and `<typecheck command>` all pass.
+- `pnpm test`, `pnpm lint`, and `pnpm typecheck` all pass.
 - Work is committed in small, scoped steps.
 
 ## Next stage

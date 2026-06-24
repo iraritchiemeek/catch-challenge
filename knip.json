@@ -2,20 +2,12 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": ["vitest.config.ts", "playwright.config.ts"],
-      "ignoreBinaries": []
+      "project": "*.ts"
     },
     "apps/be-dev": {
-      "entry": ["src/server.ts", "src/**/*.test.ts"],
       "project": "src/**/*.ts"
     },
     "apps/jamstack": {
-      "entry": [
-        "app/**/{page,layout,route,loading,error,not-found}.tsx",
-        "next.config.ts",
-        "e2e/**/*.spec.ts",
-        "lib/**/*.test.ts"
-      ],
       "project": "**/*.{ts,tsx}"
     }
   }
