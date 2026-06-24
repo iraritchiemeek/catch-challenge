@@ -111,6 +111,17 @@ Each step is one RED → GREEN → REFACTOR cycle and one commit, on branch `fea
 5. **Docs-first** — Pull current docs from **context7** (Next.js App Router, Tailwind v4, @axe-core,
    Playwright) into context **before writing any code**. _User requirement._
 
+## Deviations during implementation (recorded)
+- **Error path is unit-tested, not e2e-tested.** With live GitHub data (user's choice) and a
+  *server-side* fetch, the browser can't intercept the request to force a failure, so an e2e error
+  test would be non-deterministic. The error UI is instead proven by `lib/github.test.ts` (throws
+  `GitHubError` on non-OK) and `app/components/ErrorState.test.tsx` (renders the `role="alert"`
+  panel). Documented in `apps/jamstack/README.md`.
+- **UI render tests via `react-dom/server`.** Component rendering is asserted with
+  `renderToStaticMarkup` (no jsdom/RTL added — react-dom is already a dependency), alongside the
+  e2e suite, rather than only e2e. Keeps deterministic coverage of list/error rendering without new
+  test dependencies.
+
 ## Approval
 - [x] Approved by iraritchiemeek on 2026-06-24
 - Feedback: Prev/Next via Next.js `<Link>`; hit live GitHub in e2e; Tailwind v4; load context7 docs
