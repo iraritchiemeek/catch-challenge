@@ -2,7 +2,8 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "project": "*.ts"
+      "project": "*.ts",
+      "ignoreDependencies": ["@axe-core/cli", "chromedriver"]
     },
     "apps/be-dev": {
       "project": "src/**/*.ts"
