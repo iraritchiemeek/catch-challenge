@@ -1,84 +1,113 @@
-# Verify: Build Loop monorepo scaffold & tooling
+# Verify: GitHub repository listing (catch-design/jamstack-test)
 
-- Clone sha: `fa2f6b2` (branch `chore/build-loop-scaffold`)
-- Environment: fresh `git clone` of the local repo into a throwaway dir (39 tracked files, no
-  `node_modules`/build output copied in); Node v25.0.0, pnpm 10.18.3.
-- Method: cloned the repo fresh and followed `README.md` verbatim — no steps from memory, no files
-  copied in.
+- Clone sha: `3b62a04` (branch `feat/github-repos-listing`)
+- Environment: fresh `git clone` of the local repo into `/tmp/verify-3b62a04` (no `node_modules`/
+  build output copied in); Node v25.0.0, pnpm 10.18.3, Google Chrome 147 (for `@axe-core/cli`).
 
 ## Setup (from README, verbatim)
 
 ```
+$ git clone . /tmp/verify-3b62a04 && cd /tmp/verify-3b62a04 && git checkout feat/github-repos-listing
 $ pnpm install
-Done in 2.3s using pnpm v10.18.3
+Done in 4.1s using pnpm v10.18.3   (chromedriver build script ran via onlyBuiltDependencies)
 ```
-Result: ok — lockfile resolved cleanly from a clean clone.
 
-### Clean-clone gate (README "The clean-clone gate")
+Result: ok — no undocumented steps; clean tree after checkout.
+
+## Clean-clone gate (install / lint / typecheck / test)
 
 ```
 $ pnpm lint
-Checked 25 files in 20ms. No fixes applied.        # exit 0
-$ pnpm typecheck
-Tasks: 2 successful, 2 total                         # tsc (root configs) + turbo run typecheck; exit 0
-$ pnpm test
-Test Files  2 passed (2)
-     Tests  2 passed (2)                             # exit 0
-```
-Result: ok — all four required commands (`install`, `lint`, `typecheck`, `test`) succeed from the
-clean clone. Exit codes confirmed `0` for lint, typecheck, and test.
+Checked 34 files in 21ms. No fixes applied.
 
-### e2e (README "End-to-end tests (first run)")
+$ pnpm typecheck
+Tasks: 2 successful, 2 total
+
+$ pnpm test
+Test Files  5 passed (5)
+     Tests  21 passed (21)
+```
+
+Result: pass — all four gate commands green from the clean clone.
+
+## End-to-end + accessibility (Playwright)
 
 ```
 $ pnpm exec playwright install chromium
 $ pnpm e2e
-✓ [chromium] home page renders its heading (525ms)
-✓ [chromium] home page has no detectable accessibility violations (807ms)
-2 passed (8.5s)
+Running 5 tests using 4 workers
+  ✓ shows ten repositories on the first page
+  ✓ disables Previous and offers Next on the first page
+  ✓ Next navigates to page two, where Previous becomes available
+  ✓ pagination Next is operable by keyboard
+  ✓ has no detectable accessibility violations
+  5 passed (9.1s)
 ```
-Result: ok — Playwright boots the jamstack Next.js app via `webServer`, renders the page, and the
-axe accessibility scan reports zero violations. (This also proves the jamstack app boots and
-renders from a clean clone.)
+
+Result: pass — live integration, keyboard navigation, and axe (zero violations) all green.
 
 ## Happy path
 
-Scenario: the `be-dev` Hono service boots and its health endpoint returns success (the primary
-"skeleton runs" acceptance criterion for be-dev).
+Scenario (acceptance criteria): fetch GitHub org repos, show 10 at a time, page with Previous/Next.
 
 ```
-$ cd apps/be-dev && PORT=4123 pnpm exec tsx src/server.ts
-be-dev listening on http://localhost:4123
-$ curl -s -w "HTTP %{http_code}" http://localhost:4123/health
-{"status":"ok"}
-HTTP 200
-```
-Result: pass — `200` with body `{"status":"ok"}`.
+$ pnpm --filter jamstack build && pnpm --filter jamstack start --port 3200
 
-For the jamstack app, the happy path (page loads with the expected `<h1>Hello, Catch!</h1>`) is
-exercised and asserted by the Playwright e2e run above.
+$ curl -s 'http://localhost:3200/?page=1'
+page1 repo links: 10
+page1 first repo: https://github.com/github/.github        # sorted by name
+page1 Previous: disabled (no href);  Next: href="?page=2"
+
+$ curl -s 'http://localhost:3200/?page=2'
+page2 repo links: 10
+page2 first repo: https://github.com/github/AFNetworking   # different set
+page2 Previous: href="?page=1"
+```
+
+Observed: page 1 shows 10 repositories sorted by name; Next advances to page 2 (a distinct set of
+10); Previous appears and links back to page 1. ≥30 repos reachable by paging. Result: **pass**.
 
 ## Error path
 
-Scenario: request an unknown route on the running be-dev server — it must fail gracefully (documented
-404), not crash the process.
+Two failure modes were exercised:
+
+1. **Data edge — empty page (live):**
+   ```
+   $ curl -s 'http://localhost:3200/?page=9999'
+   "No repositories to show on this page."   (0 repo links, page renders normally)
+   ```
+   Graceful — no crash, the empty state is shown. Result: **graceful**.
+
+2. **API failure — non-OK response → accessible alert (deterministic tests):** because the GitHub
+   request is made server-side, it cannot be intercepted from the browser, so the failure path is
+   proven by the unit/component tests that run in the gate:
+   - `lib/github.test.ts` — `fetchRepos` throws `GitHubError` (incl. `status: 403`) on a non-OK response.
+   - `app/components/ErrorState.test.tsx` — renders `role="alert"`, a retry link, and the rate-limit
+     message for a 403.
+   ```
+   $ pnpm vitest run github ErrorState
+   Test Files  2 passed (2)
+        Tests  10 passed (10)
+   ```
+   Result: **graceful** — failures render a `role="alert"` panel with a retry link, not a crash.
+
+## Accessibility scan (@axe-core/cli)
 
 ```
-$ curl -s -w "HTTP %{http_code}" http://localhost:4123/does-not-exist
-404 Not Found
-HTTP 404
-$ kill -0 <server-pid>   # process still alive after the bad request
-yes — no crash
+$ BASE_URL=http://localhost:3200 pnpm a11y
+Testing http://localhost:3200/        ... 0 violations found!
+Testing http://localhost:3200/?page=2 ... 0 violations found!
+Testing complete of 2 pages
 ```
-Result: graceful — Hono returns a clean `404 Not Found` and the server stays up to serve further
-requests.
+
+Result: pass — zero violations on the list page and page 2, via the CLI the brief asks for.
 
 ## Verdict
 
-- [x] Setup reproducible from README (no undocumented steps; everything needed was committed)
-- [x] Happy path works (be-dev `/health` → 200 JSON; jamstack page renders via e2e)
-- [x] Error path handled gracefully (unknown route → 404, no crash)
+- [x] Setup reproducible from README (clean clone, no undocumented steps)
+- [x] Clean-clone gate green (lint, typecheck, test)
+- [x] Happy path works (10/page, Next/Previous across ≥30 repos)
+- [x] Error path handled gracefully (empty-data state live; API-failure alert via deterministic tests)
+- [x] Accessibility: zero violations via both `@axe-core/playwright` (e2e) and `@axe-core/cli`
 
-**Result: PASS.** The scaffold runs from a clean clone exactly as the README describes. The unit of
-work (scaffold + tooling) is **done**. Challenge features are intentionally not present and are built
-later through the Build Loop.
+**PASS** — the work runs from a clean clone exactly as documented.
