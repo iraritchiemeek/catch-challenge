@@ -1,30 +1,14 @@
 {
-  "unit_of_work": "Build Loop monorepo scaffold & tooling (commits 50ff2bc..HEAD on chore/build-loop-scaffold)",
-  "scope_note": "Scaffold + tooling only; challenge features explicitly out of scope.",
+  "unit_of_work": "GitHub repository listing feature (apps/jamstack) — branch feat/github-repos-listing",
+  "reviewed_against": "evals/rubric.md",
   "aggregate": "pass",
-  "rationale": "All four independent lenses returned pass with only info-severity findings; no error findings and no fail verdicts, so by the aggregation rule the gate passes and routes to verify.",
+  "rationale": "All four independent lenses return pass with no error- or warning-severity findings; no criterion fails. Endpoint, 10-per-page pagination, accessibility (axe zero violations both via @axe-core/playwright and @axe-core/cli), error handling, DRY logic, Tailwind Plus sourcing, docs, and clean git history all meet the bar. Proceed to verify.",
   "lenses": [
     {
       "lens": "correctness",
       "verdict": "pass",
       "confidence": 0.99,
-      "findings": [
-        {
-          "severity": "info",
-          "message": "Acceptance criteria met: the four clean-clone gate commands pass, no placeholders remain, CLAUDE.md documents Build Loop + tech rules, git history is one-commit-per-step, README documents requirements. Scope correctly limited to scaffold/tooling.",
-          "pointer": "plan.md:7-12, git log, CLAUDE.md, README.md"
-        },
-        {
-          "severity": "info",
-          "message": "Tests are meaningful and behavior-focused: be-dev health endpoint asserts 200 + JSON; jamstack greeting asserts output; Playwright e2e verifies heading text and zero accessibility violations. Each was shown RED before GREEN.",
-          "pointer": "apps/be-dev/src/app.test.ts:5-10, apps/jamstack/lib/greeting.test.ts:4-7, apps/jamstack/e2e/home.spec.ts:4-13"
-        },
-        {
-          "severity": "info",
-          "message": "Code adheres to documented patterns: Hono app pure (no module singletons), Next.js without inappropriate 'use client', strict TS everywhere.",
-          "pointer": "apps/be-dev/src/app.ts:4-7, CLAUDE.md:95-142, tsconfig.base.json"
-        }
-      ]
+      "findings": []
     },
     {
       "lens": "security/performance",
@@ -33,42 +17,31 @@
       "findings": [
         {
           "severity": "info",
-          "message": "Accessibility testing wired via AxeBuilder in Playwright; e2e asserts zero violations on the home page.",
-          "pointer": "apps/jamstack/e2e/home.spec.ts:9-12"
+          "message": "Security: React escapes rendered GitHub data (names/descriptions); href is sanitised; no target=_blank, no dangerouslySetInnerHTML, no leaked secrets.",
+          "pointer": "apps/jamstack/app/components/RepoList.tsx:20-26"
         },
         {
           "severity": "info",
-          "message": "html lang='en' set; Next.js metadata (title + description) exported for SEO.",
-          "pointer": "apps/jamstack/app/layout.tsx:4-11"
+          "message": "Performance: server fetch cached with next:{revalidate:60} to stay under GitHub's 60/hr unauthenticated limit; no client-side fetching.",
+          "pointer": "apps/jamstack/lib/github.ts:88-89"
         },
         {
           "severity": "info",
-          "message": "Strict TS with hardened flags; Biome enabled for lint+format; no committed secrets (.env ignored); safe PORT default in be-dev server.",
-          "pointer": "tsconfig.base.json:16-23, .gitignore:22-25, apps/be-dev/src/server.ts:5"
+          "message": "Accessibility: single h1, labelled section + nav, ul role=list, real-link pagination with non-focusable disabled spans; axe reports zero violations in e2e.",
+          "pointer": "apps/jamstack/app/page.tsx:16-23, apps/jamstack/app/components/Pagination.tsx:25-48, apps/jamstack/e2e/repos.spec.ts:44-48"
+        },
+        {
+          "severity": "info",
+          "message": "Light mode only: no dark: classes; globals.css pins color-scheme: light.",
+          "pointer": "apps/jamstack/app/globals.css:5-7"
         }
       ]
     },
     {
       "lens": "simplicity/maintainability",
       "verdict": "pass",
-      "confidence": 0.95,
-      "findings": [
-        {
-          "severity": "info",
-          "message": "Root vitest passWithNoTests guard is documented and pragmatic; allows future repo-level tests without forcing them.",
-          "pointer": "vitest.config.ts:7-8"
-        },
-        {
-          "severity": "info",
-          "message": "Auto-discovery globs (apps/*/vitest.config.ts, **/e2e/**/*.spec.ts) let new workspaces integrate without root config changes.",
-          "pointer": "vitest.config.ts:20, playwright.config.ts:10"
-        },
-        {
-          "severity": "info",
-          "message": "Biome replacing oxlint+Prettier is justified in plan.md/CLAUDE.md; a comment in biome.json would further aid clarity (optional, JSON has no comments).",
-          "pointer": "biome.json:1"
-        }
-      ]
+      "confidence": 0.98,
+      "findings": []
     },
     {
       "lens": "docs/setup-smoothness",
@@ -77,18 +50,18 @@
       "findings": [
         {
           "severity": "info",
-          "message": "README concise and accurate; single setup command; command table matches real package.json scripts.",
-          "pointer": "README.md:17-50"
+          "message": "Architecture (server fetch + URL pagination, data layer, Tailwind Plus sourcing, rate limit) documented and matches code.",
+          "pointer": "apps/jamstack/README.md:26-43, apps/jamstack/docs/tailwind-plus-sources.md"
         },
         {
           "severity": "info",
-          "message": "No placeholders remain in .claude/skills or CLAUDE.md; all referenced commands exist as scripts.",
-          "pointer": ".claude/skills, CLAUDE.md, package.json"
+          "message": "Setup is complete: install, dev (3000) vs prod (3100), and a11y scan prerequisites all documented; lockfile committed; chromedriver via onlyBuiltDependencies.",
+          "pointer": "README.md:14-36, apps/jamstack/README.md:8-24, package.json:34-38"
         },
         {
           "severity": "info",
-          "message": "Clean git history (one commit per step) with clear messages; pnpm-lock.yaml committed; .gitignore sensible; documented layout matches reality.",
-          "pointer": "git log 4dd4b3a..HEAD, pnpm-lock.yaml, README.md:69-84"
+          "message": "Git history is clean, one concern per commit, following the plan decomposition.",
+          "pointer": "git log main..HEAD"
         }
       ]
     }

@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Jamstack",
-  description: "Build Loop scaffold — paginated GitHub repo listing comes later.",
+  title: "GitHub Repositories",
+  description: "Browse a GitHub organisation's repositories, ten at a time.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-gray-50 text-gray-900 antialiased">{children}</body>
     </html>
   );
 }

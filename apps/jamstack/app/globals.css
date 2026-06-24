@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Light mode only — no dark variants are used anywhere in this app, so we pin the
+   colour scheme to light to stop the browser from applying its dark UA styles. */
+:root {
+  color-scheme: light;
+}

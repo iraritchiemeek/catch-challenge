@@ -4,14 +4,11 @@ A local monorepo housing two coding challenges, built with the **Build Loop** wo
 (`plan → tdd → review-gate → verify`). See `PROCESS.md` for the workflow and `CLAUDE.md` for the
 operating contract and tech rules.
 
-> This repository currently contains the **scaffold + tooling only**. The two challenge apps are
-> minimal skeletons; their features are built later through the Build Loop.
-
 ## Apps
 
 | Workspace | Stack | Status |
 |---|---|---|
-| `apps/jamstack` | Next.js (App Router), React 19 | Skeleton — paginated GitHub repo listing comes later |
+| `apps/jamstack` | Next.js (App Router), React 19, Tailwind v4 | **Done** — paginated GitHub repository listing (see [`apps/jamstack/README.md`](apps/jamstack/README.md)) |
 | `apps/be-dev` | Hono on Node (`@hono/node-server`) | Skeleton — JSON API + SQLite/Drizzle + CSV import come later |
 
 ## Requirements
@@ -36,6 +33,7 @@ pnpm install
 | `pnpm format` | Biome fix + format (writes changes). |
 | `pnpm test` | Run all Vitest unit/integration tests. |
 | `pnpm e2e` | Run Playwright e2e + accessibility tests (boots the jamstack app automatically). |
+| `pnpm a11y` | Scan the running app with `@axe-core/cli` (start the app first; see jamstack README). |
 | `pnpm knip` | Dead-code / unused-dependency detection. |
 
 ### The clean-clone gate
@@ -52,10 +50,15 @@ pnpm test
 ### Running the apps directly
 
 ```bash
-pnpm --filter jamstack dev    # Next.js app on http://localhost:3000
+pnpm --filter jamstack dev    # GitHub repo listing on http://localhost:3000
 pnpm --filter be-dev dev      # Hono API on http://localhost:3000 (PORT to override)
 curl http://localhost:3000/health   # be-dev health check -> {"status":"ok"}
 ```
+
+The jamstack app lists the `github` org's repositories ten per page with Previous/Next
+navigation. See [`apps/jamstack/README.md`](apps/jamstack/README.md) for its architecture,
+the Tailwind Plus component sourcing, the GitHub API rate-limit note, and how to run the
+`@axe-core/cli` accessibility scan.
 
 ### End-to-end tests (first run)
 

@@ -5,6 +5,10 @@ node_modules/
 dist/
 .next/
 out/
+*.tsbuildinfo
+
+# Next.js generated types (regenerated on build; CLAUDE.md: do not edit/commit)
+next-env.d.ts
 
 # Turborepo
 .turbo/
