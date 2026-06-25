@@ -13,13 +13,15 @@ export function Pagination({
   count,
   hasPrev,
   hasNext,
+  sortKey,
 }: {
   page: number;
   count: number;
   hasPrev: boolean;
   hasNext: boolean;
+  sortKey?: string;
 }) {
-  const model: PaginationModel = paginationModel(page, count, hasPrev, hasNext);
+  const model: PaginationModel = paginationModel(page, count, hasPrev, hasNext, sortKey);
 
   return (
     <nav

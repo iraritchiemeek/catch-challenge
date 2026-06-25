@@ -1,50 +1,72 @@
 import { ErrorState } from "@/app/components/ErrorState";
 import { Pagination } from "@/app/components/Pagination";
 import { RepoList } from "@/app/components/RepoList";
-import { fetchRepos, GitHubError, normalizePage } from "@/lib/github";
+import { Toolbar } from "@/app/components/Toolbar";
+import { fetchOrgRepoCount, fetchRepos, GitHubError, normalizePage } from "@/lib/github";
 import { pageHref } from "@/lib/pagination";
+import { parseSort } from "@/lib/sort";
 
-// Server Component: the page number comes from the URL (`?page=N`), data is
-// fetched on the server, and Previous/Next are real links to other pages — so
-// pagination needs no client-side state.
-export default async function Home({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+// Server Component: the page number and sort both come from the URL
+// (`?page=N&sort=key`), data is fetched on the server, and the controls are real
+// links / a native select that update the URL — so there is no client-side
+// pagination or sorting state to manage.
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; sort?: string }>;
+}) {
   const params = await searchParams;
   const page = normalizePage(Number(params.page ?? "1"));
+  const sort = parseSort(params.sort);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">GitHub repositories</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Repositories in the <code className="rounded bg-gray-100 px-1 py-0.5">github</code>{" "}
-          organisation, ten per page.
-        </p>
-      </header>
-      <Repositories page={page} />
+    <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      <h1 className="mb-4 text-lg font-semibold text-gray-900">GitHub repositories</h1>
+      <Repositories page={page} sort={sort} />
     </main>
   );
 }
 
-async function Repositories({ page }: { page: number }) {
+async function Repositories({ page, sort }: { page: number; sort: ReturnType<typeof parseSort> }) {
   try {
-    const { repos, hasPrev, hasNext } = await fetchRepos(page);
+    // Fetch the page and the org-wide count in parallel; the count is best-effort
+    // (resolves to null on failure) so it never blocks or breaks the listing.
+    const [{ repos, hasPrev, hasNext }, count] = await Promise.all([
+      fetchRepos(page, sort),
+      fetchOrgRepoCount(),
+    ]);
+
     return (
       <section
         aria-label="Repositories"
-        className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200"
+        className="overflow-hidden rounded-lg ring-1 ring-gray-200"
       >
+        <Toolbar count={count} currentSort={sort.key} />
         {repos.length === 0 ? (
-          <p className="px-4 py-12 text-center text-sm text-gray-500 sm:px-6">
+          <p className="bg-white px-4 py-12 text-center text-sm text-gray-500 sm:px-6">
             No repositories to show on this page.
           </p>
         ) : (
-          <RepoList repos={repos} />
+          <div className="bg-white">
+            <RepoList repos={repos} />
+          </div>
         )}
-        <Pagination page={page} count={repos.length} hasPrev={hasPrev} hasNext={hasNext} />
+        <Pagination
+          page={page}
+          count={repos.length}
+          hasPrev={hasPrev}
+          hasNext={hasNext}
+          sortKey={sort.key}
+        />
       </section>
     );
   } catch (error) {
     const status = error instanceof GitHubError ? error.status : undefined;
-    return <ErrorState retryHref={pageHref(page)} {...(status !== undefined ? { status } : {})} />;
+    return (
+      <ErrorState
+        retryHref={pageHref(page, sort.key)}
+        {...(status !== undefined ? { status } : {})}
+      />
+    );
   }
 }
