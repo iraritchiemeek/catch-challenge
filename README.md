@@ -34,7 +34,12 @@ See each app's README for details: [jamstack](apps/jamstack/README.md), [be-dev]
 - **Backend:** Hono on Node + `node:sqlite` — `apps/be-dev`
 - **Lint + format:** [Biome](https://biomejs.dev)
 - **Dead-code:** [Knip](https://knip.dev)
-- **Tests:** [Vitest](https://vitest.dev) (unit/integration) + [Playwright](https://playwright.dev) (e2e + accessibility)
+- **Tests:** [Vitest](https://vitest.dev) (unit/integration) + [Playwright](https://playwright.dev) (e2e)
+- **Accessibility:** [axe](https://github.com/dequelabs/axe-core) — `@axe-core/playwright` inside the e2e suite, plus a standalone `@axe-core/cli` scan (`pnpm a11y`)
+
+Built agentically with Claude Code (Opus 4.8, high reasoning effort, auto mode), using the
+[context7](https://github.com/upstash/context7) MCP server to pull current library docs during
+development.
 
 ## Checks
 
@@ -43,4 +48,5 @@ pnpm lint        # Biome lint + format check
 pnpm typecheck   # TypeScript
 pnpm test        # Vitest unit/integration
 pnpm e2e         # Playwright (run `pnpm exec playwright install chromium` once first)
+pnpm a11y        # axe-core/cli accessibility scan (start an app first; see app READMEs)
 ```
