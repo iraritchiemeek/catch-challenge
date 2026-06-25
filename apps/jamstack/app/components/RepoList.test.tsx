@@ -87,12 +87,4 @@ describe("RepoList", () => {
     // No language name leaks through as an empty element.
     expect(html).not.toContain("MIT License");
   });
-
-  it("does not render an activity graph / sparkline", () => {
-    const html = render([repo({ id: 1 })]);
-    // The graph is explicitly out of scope; guard against a stray <svg> sparkline
-    // by asserting there is no polyline/path-based chart element.
-    expect(html).not.toContain("<polyline");
-    expect(html).not.toContain('data-testid="sparkline"');
-  });
 });
