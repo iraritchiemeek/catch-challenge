@@ -31,7 +31,7 @@ diffed, and reviewed.
 code that makes it pass. A test written after the code tends to encode the code's bugs; a test
 written first encodes the requirement, so behavior is proven, not assumed.
 
-**review-gate** — The eval centerpiece. Reads `evals/rubric.md` and spawns several **independent**
+**review-gate** — Reads `evals/rubric.md` and spawns several **independent**
 reviewer subagents, each with a distinct lens (correctness, security/performance,
 simplicity/maintainability, docs/setup-smoothness). Each returns a structured verdict judging only
 what the rubric asks; the gate aggregates them into a routing recommendation. Independent, diverse
@@ -42,11 +42,11 @@ Any `error` finding or a majority `fail` blocks the pass.
 verbatim, boots the thing, exercises a happy path and an error path, and records evidence to
 `verify.md`. "I made the change" is not evidence; the grader runs it from a clean clone, so we do too.
 
-## The keystone
+## The rubric
 
-`evals/rubric.md` is "what good looks like." Every unit of work is judged against it by the
-review-gate. It is versioned, and edits to it must be deliberate — changing a criterion changes the
-bar for all future work.
+`evals/rubric.md` defines what the review gate checks for. Every unit of work is judged against it.
+It is versioned, and edits to it should be deliberate — changing a criterion changes the bar for all
+future work.
 
 ## Starting a task
 

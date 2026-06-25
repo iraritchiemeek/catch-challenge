@@ -1,13 +1,14 @@
 ---
 name: review-gate
-description: The eval centerpiece of the Build Loop. Reads evals/rubric.md and spawns several independent reviewer subagents, each with a distinct lens (correctness, security/performance, simplicity/maintainability, docs/setup-smoothness). Each returns a structured per-lens verdict and judges only what the rubric asks. Aggregate to a routing recommendation — pass, return-to-plan, return-to-tdd, or return-to-verify.
+description: The independent review stage of the Build Loop. Reads evals/rubric.md and spawns several independent reviewer subagents, each with a distinct lens (correctness, security/performance, simplicity/maintainability, docs/setup-smoothness). Each returns a structured per-lens verdict and judges only what the rubric asks. Aggregate to a routing recommendation — pass, return-to-plan, return-to-tdd, or return-to-verify.
 ---
 
 # review-gate — independent, rubric-driven review
 
-The eval centerpiece of the Build Loop. Judge a completed unit of work against `evals/rubric.md`
-using several **independent** reviewer subagents, then aggregate their verdicts into a routing
-recommendation. This is the gate that decides whether work proceeds to `verify` or goes back.
+The independent review stage of the Build Loop. Judge a completed unit of work against
+`evals/rubric.md` using several **independent** reviewer subagents, then aggregate their verdicts
+into a routing recommendation. This is the gate that decides whether work proceeds to `verify` or
+goes back.
 
 ## Artifact
 

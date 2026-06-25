@@ -1,12 +1,10 @@
-# Eval Rubric — "What Good Looks Like"
+# Eval Rubric
 
-> **This file is the keystone of the Build Loop.** The `review-gate` skill judges every
-> unit of work against the criteria below. It is the single source of truth for "what good
-> looks like" in this repo.
+> The `review-gate` skill judges every unit of work against the criteria below.
 >
-> **This file is versioned. Edits must be deliberate.** Changing a criterion changes the bar
-> for every future review, so treat changes like an API change: discuss, justify in the commit
-> message, and never edit it just to make a failing review pass.
+> This file is versioned. Changing a criterion changes the bar for every future review, so edits
+> should be deliberate: justify them in the commit message, and don't edit it just to make a failing
+> review pass.
 
 ## How the gate uses this file
 
