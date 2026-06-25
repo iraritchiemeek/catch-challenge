@@ -26,6 +26,16 @@ To run just one: `pnpm --filter jamstack dev` or `pnpm --filter be-dev dev`.
 
 See each app's README for details: [jamstack](apps/jamstack/README.md), [be-dev](apps/be-dev/README.md).
 
+## Tech stack
+
+- **Monorepo:** pnpm workspaces + [Turborepo](https://turborepo.dev)
+- **Language:** TypeScript (strict)
+- **Frontend:** Next.js (App Router), React, Tailwind CSS — `apps/jamstack`
+- **Backend:** Hono on Node + `node:sqlite` — `apps/be-dev`
+- **Lint + format:** [Biome](https://biomejs.dev)
+- **Dead-code:** [Knip](https://knip.dev)
+- **Tests:** [Vitest](https://vitest.dev) (unit/integration) + [Playwright](https://playwright.dev) (e2e + accessibility)
+
 ## Checks
 
 ```bash
