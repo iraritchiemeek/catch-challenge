@@ -1,67 +1,129 @@
 {
-  "unit_of_work": "GitHub repository listing feature (apps/jamstack) — branch feat/github-repos-listing",
+  "unit_of_work": "GitHub-style repo layout + functional sort (apps/jamstack), branch feat/jamstack-repo-layout",
   "reviewed_against": "evals/rubric.md",
   "aggregate": "pass",
-  "rationale": "All four independent lenses return pass with no error- or warning-severity findings; no criterion fails. Endpoint, 10-per-page pagination, accessibility (axe zero violations both via @axe-core/playwright and @axe-core/cli), error handling, DRY logic, Tailwind Plus sourcing, docs, and clean git history all meet the bar. Proceed to verify.",
+  "rationale": "All four independent lenses returned pass; no error-severity findings and no fail verdicts, so the aggregation rule yields a pass. Work proceeds to verify.",
   "lenses": [
     {
       "lens": "correctness",
       "verdict": "pass",
-      "confidence": 0.99,
-      "findings": []
+      "confidence": 0.92,
+      "findings": [
+        {
+          "severity": "info",
+          "message": "All acceptance criteria met and correctly understood: default sort 'Last pushed', invalid/absent ?sort= falls back via parseSort, pagination preserves sort, error panel preserved, no search bar / no 'All' heading / data-backed meta only, fetchOrgRepoCount degrades to null without breaking the listing.",
+          "pointer": "apps/jamstack/app/page.tsx:30"
+        },
+        {
+          "severity": "info",
+          "message": "Tests assert requirements not implementation across sort mapping, pagination (incl. partial-last/empty page), relativeTime buckets, abbreviateCount rounding, repo field mapping (null license / missing topics), and row rendering; 96/96 unit tests pass clean.",
+          "pointer": "apps/jamstack/lib/pagination.test.ts:18"
+        },
+        {
+          "severity": "info",
+          "message": "relativeTime tests stop at weeks; year/month buckets untested. Uniform loop logic, so a coverage gap not a defect.",
+          "pointer": "apps/jamstack/lib/format.test.ts:35"
+        },
+        {
+          "severity": "info",
+          "message": "abbreviateCount has no millions tier, but counts in this UI never reach that scale; within scope.",
+          "pointer": "apps/jamstack/lib/format.ts:44"
+        }
+      ]
     },
     {
       "lens": "security/performance",
       "verdict": "pass",
-      "confidence": 0.98,
+      "confidence": 0.92,
       "findings": [
         {
           "severity": "info",
-          "message": "Security: React escapes rendered GitHub data (names/descriptions); href is sanitised; no target=_blank, no dangerouslySetInnerHTML, no leaked secrets.",
-          "pointer": "apps/jamstack/app/components/RepoList.tsx:20-26"
+          "message": "?sort= whitelisted via parseSort (falls back to default); buildReposUrl only emits typed literal sort/direction. ?page= normalized. No injection surface.",
+          "pointer": "apps/jamstack/lib/sort.ts:39"
         },
         {
           "severity": "info",
-          "message": "Performance: server fetch cached with next:{revalidate:60} to stay under GitHub's 60/hr unauthenticated limit; no client-side fetching.",
-          "pointer": "apps/jamstack/lib/github.ts:88-89"
+          "message": "No dangerouslySetInnerHTML; all repo text auto-escaped by React. Same-tab external links, so no reverse-tabnabbing surface.",
+          "pointer": "apps/jamstack/app/components/RepoList.tsx:54"
         },
         {
           "severity": "info",
-          "message": "Accessibility: single h1, labelled section + nav, ul role=list, real-link pagination with non-focusable disabled spans; axe reports zero violations in e2e.",
-          "pointer": "apps/jamstack/app/page.tsx:16-23, apps/jamstack/app/components/Pagination.tsx:25-48, apps/jamstack/e2e/repos.spec.ts:44-48"
+          "message": "Repos + org count fetched in parallel with next:{revalidate:60}; the extra GET /orgs/github is best-effort (try/catch -> null) and never breaks the listing.",
+          "pointer": "apps/jamstack/lib/github.ts:144"
         },
         {
           "severity": "info",
-          "message": "Light mode only: no dark: classes; globals.css pins color-scheme: light.",
-          "pointer": "apps/jamstack/app/globals.css:5-7"
+          "message": "A11y: valid heading order (h1 then h2/row), labelled native select, aria-hidden Octicons, SR-only metadata nouns, one overlay link per row; e2e axe-clean (0 violations) and Biome a11y lints pass.",
+          "pointer": "apps/jamstack/app/components/RepoList.tsx:60"
+        },
+        {
+          "severity": "info",
+          "message": "Contrast passes WCAG AA for all pairs (link 5.19, pills 6.16, gray text 7.56), incl. over hover:bg-gray-50.",
+          "pointer": "apps/jamstack/app/components/RepoList.tsx:46"
+        },
+        {
+          "severity": "info",
+          "message": "SEO: static metadata, lang=en, semantic headings, server-rendered.",
+          "pointer": "apps/jamstack/app/layout.tsx:5"
         }
       ]
     },
     {
       "lens": "simplicity/maintainability",
       "verdict": "pass",
-      "confidence": 0.98,
-      "findings": []
+      "confidence": 0.92,
+      "findings": [
+        {
+          "severity": "info",
+          "message": "Repo.updatedAt is mapped/typed but never read by any render path (only pushedAt drives 'Updated …'); appears solely as fixture data. Harmless carried-but-unused field; the type comment is slightly inaccurate.",
+          "pointer": "apps/jamstack/lib/github.ts:34"
+        },
+        {
+          "severity": "info",
+          "message": "No deps added: package.json unchanged, Octicons inlined with MIT provenance; knip clean; typecheck passes under strict TS.",
+          "pointer": "apps/jamstack/app/components/icons.tsx:1"
+        },
+        {
+          "severity": "info",
+          "message": "Strong separation: pure unit-tested helpers keep components thin; SortControl the only leaf client component while page stays a Server Component; strict-TS edge cases handled deliberately.",
+          "pointer": "apps/jamstack/lib/sort.ts:28"
+        }
+      ]
     },
     {
       "lens": "docs/setup-smoothness",
       "verdict": "pass",
-      "confidence": 0.98,
+      "confidence": 0.92,
       "findings": [
         {
           "severity": "info",
-          "message": "Architecture (server fetch + URL pagination, data layer, Tailwind Plus sourcing, rate limit) documented and matches code.",
-          "pointer": "apps/jamstack/README.md:26-43, apps/jamstack/docs/tailwind-plus-sources.md"
+          "message": "Run instructions correct (pnpm install; pnpm --filter jamstack dev); no package.json/lockfile changes so no hidden setup steps.",
+          "pointer": "apps/jamstack/README.md:24"
         },
         {
           "severity": "info",
-          "message": "Setup is complete: install, dev (3000) vs prod (3100), and a11y scan prerequisites all documented; lockfile committed; chromedriver via onlyBuiltDependencies.",
-          "pointer": "README.md:14-36, apps/jamstack/README.md:8-24, package.json:34-38"
+          "message": "Docs describe the new layout accurately (GitHub model, Primer Octicons, Linguist colours, scope notes: no search, issues conflates PRs, graph omitted); no stale Previous/Next-only claims.",
+          "pointer": "apps/jamstack/README.md:11"
         },
         {
           "severity": "info",
-          "message": "Git history is clean, one concern per commit, following the plan decomposition.",
-          "pointer": "git log main..HEAD"
+          "message": "Documented ?sort= values match SORT_OPTIONS; org count attributed to public_repos; documented structure matches added files.",
+          "pointer": "apps/jamstack/lib/sort.ts:28"
+        },
+        {
+          "severity": "info",
+          "message": "Tests table matches actual test files present.",
+          "pointer": "apps/jamstack/README.md:116"
+        },
+        {
+          "severity": "info",
+          "message": "3 commits cleanly scoped one-concern-each with clear messages; no stray dependencies.",
+          "pointer": "feat/jamstack-repo-layout"
+        },
+        {
+          "severity": "info",
+          "message": "Minor naming variance (not misleading): provenance doc says 'sort-desc' Octicon while README says 'sort'; same glyph (SortIcon).",
+          "pointer": "apps/jamstack/docs/tailwind-plus-sources.md:24"
         }
       ]
     }

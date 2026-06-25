@@ -5,6 +5,14 @@ describe("pageHref", () => {
   it("encodes the page as a query string", () => {
     expect(pageHref(2)).toBe("?page=2");
   });
+
+  it("preserves a non-default sort so paging keeps the chosen order", () => {
+    expect(pageHref(2, "name")).toBe("?page=2&sort=name");
+  });
+
+  it("omits the sort param when it is the default (keeps URLs clean)", () => {
+    expect(pageHref(2, "pushed")).toBe("?page=2");
+  });
 });
 
 describe("paginationModel", () => {
@@ -22,6 +30,12 @@ describe("paginationModel", () => {
     expect(model.nextHref).toBe("?page=3");
     expect(model.rangeStart).toBe(11);
     expect(model.rangeEnd).toBe(20);
+  });
+
+  it("threads the active sort into the prev/next hrefs", () => {
+    const model = paginationModel(2, 10, true, true, "name");
+    expect(model.prevHref).toBe("?page=1&sort=name");
+    expect(model.nextHref).toBe("?page=3&sort=name");
   });
 
   it("has no next link on the last, partial page", () => {

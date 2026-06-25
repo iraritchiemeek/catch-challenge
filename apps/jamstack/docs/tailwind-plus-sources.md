@@ -1,43 +1,30 @@
-# Tailwind Plus component sources
+# Visual design provenance
 
-All visual design in this app is sourced from **Tailwind Plus** (tailwindcss.com/plus) UI Blocks —
-no bespoke layout is invented. The raw extracted markup is recorded here for provenance. The
-components in `app/components/` are these blocks with data mapped in, `dark:` variants removed
-(this app is light-mode only), and `gray-*` kept as the neutral palette.
+This file records where the app's visual design comes from, so nothing reads as invented. Two
+sources are used, both adapted to light-mode only (`dark:` variants removed) with `gray-*` as the
+neutral palette:
 
-## 1. Repo list — Application UI → Lists → Stacked lists → "With links"
+1. The **repository row + toolbar** are modelled on **GitHub's own** org Repositories page
+   (`https://github.com/orgs/github/repositories`), using GitHub's **Primer Octicons** for the icons.
+2. The **pagination footer** is a **Tailwind Plus** UI Block.
 
-Source: `https://tailwindcss.com/plus/ui-blocks/application-ui/lists/stacked-lists` (variant "With links").
-Adapted into `app/components/RepoList.tsx`: avatar image dropped, `name` → repo name link,
-`email` line → description, right-hand `role`/`lastSeen` → language + star count. The full-row
-overlay link pattern (`<span className="absolute inset-x-0 ..." />`) is preserved for an accessible
-click target.
+## 1. Repo row + toolbar — modelled on GitHub's org Repositories page
 
-```tsx
-<ul role="list" className="divide-y divide-gray-100">
-  {people.map((person) => (
-    <li key={person.email} className="relative flex justify-between gap-x-6 py-5">
-      <div className="flex min-w-0 gap-x-4">
-        <div className="min-w-0 flex-auto">
-          <p className="text-sm/6 font-semibold text-gray-900">
-            <a href={person.href}>
-              <span className="absolute inset-x-0 -top-px bottom-0" />
-              {person.name}
-            </a>
-          </p>
-          <p className="mt-1 flex text-xs/5 text-gray-500">{person.email}</p>
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-x-4">
-        <div className="hidden sm:flex sm:flex-col sm:items-end">
-          <p className="text-sm/6 text-gray-900">{person.role}</p>
-        </div>
-        <ChevronRightIcon aria-hidden="true" className="size-5 flex-none text-gray-400" />
-      </div>
-    </li>
-  ))}
-</ul>
-```
+Reference: `https://github.com/orgs/github/repositories`. Implemented in
+`app/components/RepoList.tsx` and `app/components/Toolbar.tsx`. Each row reproduces GitHub's layout —
+name link + visibility badge, description, topic pills, and a metadata line (language + colour dot,
+license, forks, stars, issues, and a relative "Updated …" time) — with the activity-graph sparkline
+**omitted** (out of scope) and no separate pull-request count (the list API only exposes a combined
+`open_issues_count`). The full-row overlay link pattern (`<span className="absolute inset-x-0 …" />`)
+is kept so the whole row is one accessible click target.
+
+### Icons — Primer Octicons (MIT)
+
+Source: `https://github.com/primer/octicons` (`@primer/octicons`, MIT licensed). The 16px path data
+for the glyphs used (star, repo-forked, issue-opened, law, sort-desc, chevron-down, dot-fill) is
+inlined in `app/components/icons.tsx` rather than adding the `@primer/octicons-react` dependency for a
+handful of icons. The language dot colours are the canonical values from **GitHub Linguist**
+(`github/linguist`, MIT), captured as a small map in `lib/languages.ts`.
 
 ## 2. Pagination — Application UI → Navigation → Pagination → "Simple card footer"
 
