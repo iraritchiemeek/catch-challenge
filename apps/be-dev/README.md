@@ -31,7 +31,9 @@ Returns `{ data, page, pageSize, total, totalPages, hasPrev, hasNext, offset }`.
 ## Tests
 
 ```bash
-pnpm exec vitest run apps/be-dev
+pnpm exec vitest run apps/be-dev   # unit/integration
+pnpm e2e                           # Playwright: async load, pagination, error path, a11y
 ```
 
-Covers validation, CSV import, the query layer, the API, and the renderer's HTML-escaping.
+Unit tests cover validation, CSV import, the query layer, the API, and the renderer's HTML-escaping.
+The e2e spec drives the real page in a browser (boots the app on :3101).
