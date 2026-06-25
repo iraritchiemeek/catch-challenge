@@ -68,7 +68,7 @@ function RepoRow({ repo, now }: { repo: Repo; now: Date }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600">
         {repo.language ? (
           <span className="inline-flex items-center gap-x-1.5">
-            <DotFillIcon className="size-3" color={languageColor(repo.language)} />
+            <DotFillIcon className="size-[0.9rem]" color={languageColor(repo.language)} />
             {repo.language}
           </span>
         ) : null}
