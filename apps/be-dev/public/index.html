@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Customers</title>
+    <meta name="description" content="A paginated list of customer records served from the be-dev API." />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="bg-white text-gray-900">
+    <!-- Layout + table markup from Tailwind Plus (see docs/tailwind-plus-sources.md):
+         Tables → "With hidden columns on mobile", Pagination → "Simple card footer". -->
+    <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+          <h1 class="text-base font-semibold text-gray-900">Customers</h1>
+          <p class="mt-2 text-sm text-gray-700">
+            A list of all customer records, including their name, email, company, title, city, gender,
+            IP address and website.
+          </p>
+        </div>
+      </div>
+
+      <noscript>
+        <p class="mt-6 rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          This list loads its data with JavaScript. Please enable JavaScript to view customers.
+        </p>
+      </noscript>
+
+      <!-- Error region: hidden until a fetch fails, then announced to assistive tech. -->
+      <div
+        id="error"
+        role="alert"
+        hidden
+        class="mt-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800"
+      ></div>
+
+      <div class="-mx-4 mt-8 sm:mx-0">
+        <table class="min-w-full divide-y divide-gray-300">
+          <caption class="sr-only">Customers</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-0">Name</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
+              <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Company</th>
+              <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Title</th>
+              <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">City</th>
+              <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Gender</th>
+              <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">IP address</th>
+              <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Website</th>
+            </tr>
+          </thead>
+          <tbody id="rows" aria-busy="true" class="divide-y divide-gray-200 bg-white">
+            <tr>
+              <td colspan="8" class="px-3 py-8 text-center text-sm text-gray-500">Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <nav aria-label="Pagination" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <div class="hidden sm:block">
+            <p id="status" aria-live="polite" class="text-sm text-gray-700"></p>
+          </div>
+          <div class="flex flex-1 justify-between sm:justify-end">
+            <button
+              type="button"
+              id="prev"
+              class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 inset-ring inset-ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:inset-ring-gray-200 disabled:hover:bg-white"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              id="next"
+              class="relative ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 inset-ring inset-ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:inset-ring-gray-200 disabled:hover:bg-white"
+            >
+              Next
+            </button>
+          </div>
+        </nav>
+      </div>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

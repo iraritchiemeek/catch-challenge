@@ -9,11 +9,16 @@ operating contract and tech rules.
 | Workspace | Stack | Status |
 |---|---|---|
 | `apps/jamstack` | Next.js (App Router), React 19, Tailwind v4 | **Done** — paginated GitHub repository listing (see [`apps/jamstack/README.md`](apps/jamstack/README.md)) |
-| `apps/be-dev` | Hono on Node (`@hono/node-server`) | Skeleton — JSON API + SQLite/Drizzle + CSV import come later |
+| `apps/be-dev` | Hono on Node (`@hono/node-server`), SQLite (`node:sqlite`), Tailwind v4 | **Done** — CSV → SQLite import, paginated JSON API, and an async customer list view (see [`apps/be-dev/README.md`](apps/be-dev/README.md)) |
+
+The two challenges are independent. Each keeps its own Build Loop artifacts (`plan.md`,
+`review.json`, `verify.md`) — jamstack's at the repo root, be-dev's under
+[`apps/be-dev/`](apps/be-dev).
 
 ## Requirements
 
-- **Node** ≥ 20 (developed on Node 25)
+- **Node** ≥ 24 (developed on Node 25). `apps/be-dev` uses the built-in `node:sqlite` module, which
+  needs Node ≥ 24; `apps/jamstack` alone runs on Node ≥ 20.
 - **pnpm** 10 (`corepack enable` or see https://pnpm.io/installation) — this repo is **pnpm only**
 
 ## Setup
@@ -50,15 +55,23 @@ pnpm test
 ### Running the apps directly
 
 ```bash
-pnpm --filter jamstack dev    # GitHub repo listing on http://localhost:3000
-pnpm --filter be-dev dev      # Hono API on http://localhost:3000 (PORT to override)
-curl http://localhost:3000/health   # be-dev health check -> {"status":"ok"}
+# jamstack — GitHub repo listing on http://localhost:3000
+pnpm --filter jamstack dev
+
+# be-dev — customers API + list view on http://localhost:3000 (PORT to override)
+pnpm --filter be-dev db:import   # one-time: create the SQLite schema + load customers.csv
+pnpm --filter be-dev dev         # builds the stylesheet, then serves the app + /api/customers
 ```
 
 The jamstack app lists the `github` org's repositories ten per page with Previous/Next
 navigation. See [`apps/jamstack/README.md`](apps/jamstack/README.md) for its architecture,
 the Tailwind Plus component sourcing, the GitHub API rate-limit note, and how to run the
 `@axe-core/cli` accessibility scan.
+
+The be-dev app imports `data/customers.csv` into SQLite, serves it through a paginated, input-
+validated JSON API, and renders it as an asynchronously-loaded list. See
+[`apps/be-dev/README.md`](apps/be-dev/README.md) for its setup, the API contract, the architecture,
+and the security/performance/accessibility/SEO notes.
 
 ### End-to-end tests (first run)
 
@@ -74,8 +87,8 @@ pnpm e2e
 ```
 .
 ├── apps/
-│   ├── be-dev/        # Hono on Node skeleton (src/app.ts, src/server.ts)
-│   └── jamstack/      # Next.js App Router skeleton (app/, lib/, e2e/)
+│   ├── be-dev/        # Hono API + SQLite import + list view (src/, public/, data/customers.csv)
+│   └── jamstack/      # Next.js App Router GitHub repo listing (app/, lib/, e2e/)
 ├── .claude/skills/    # Build Loop stages: plan, tdd, review-gate, verify
 ├── evals/rubric.md    # The bar every unit of work is judged against
 ├── biome.json         # Lint + format

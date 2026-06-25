@@ -1,7 +1,10 @@
 import { serve } from "@hono/node-server";
-import { app } from "./app.js";
+import { createApp } from "./app.js";
+import { DB_PATH, openDb } from "./import.js";
 
-// Node entrypoint: bind the pure Hono app to an HTTP server.
+// Node entrypoint: open the SQLite database and bind the Hono app to a server.
+const db = openDb(DB_PATH);
+const app = createApp(db);
 const port = Number(process.env.PORT ?? 3000);
 
 serve({ fetch: app.fetch, port }, (info) => {
