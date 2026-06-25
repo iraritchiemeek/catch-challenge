@@ -2,6 +2,7 @@
 // "which links exist and what range are we showing" logic is unit-tested once and
 // the component stays a thin renderer (DRY).
 import { PER_PAGE } from "./github";
+import { DEFAULT_SORT } from "./sort";
 
 export interface PaginationModel {
   readonly page: number;
@@ -15,26 +16,36 @@ export interface PaginationModel {
   readonly rangeEnd: number;
 }
 
-/** Build the query string that selects a given page. */
-export function pageHref(page: number): string {
-  return `?page=${page}`;
+/**
+ * Build the query string that selects a given page, preserving the active sort
+ * so paging keeps the chosen order. The default sort is omitted to keep URLs
+ * clean (a bare `?page=N`).
+ */
+export function pageHref(page: number, sortKey?: string): string {
+  const params = new URLSearchParams({ page: String(page) });
+  if (sortKey !== undefined && sortKey !== DEFAULT_SORT.key) {
+    params.set("sort", sortKey);
+  }
+  return `?${params.toString()}`;
 }
 
 /**
  * Derive the pagination view-model from the current page, the number of repos on
- * it, and whether previous/next pages exist.
+ * it, whether previous/next pages exist, and the active sort key (threaded into
+ * the prev/next hrefs).
  */
 export function paginationModel(
   page: number,
   count: number,
   hasPrev: boolean,
   hasNext: boolean,
+  sortKey?: string,
 ): PaginationModel {
   const offset = (page - 1) * PER_PAGE;
   return {
     page,
-    prevHref: hasPrev ? pageHref(page - 1) : null,
-    nextHref: hasNext ? pageHref(page + 1) : null,
+    prevHref: hasPrev ? pageHref(page - 1, sortKey) : null,
+    nextHref: hasNext ? pageHref(page + 1, sortKey) : null,
     rangeStart: count === 0 ? 0 : offset + 1,
     rangeEnd: count === 0 ? 0 : offset + count,
   };
