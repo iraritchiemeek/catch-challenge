@@ -3,13 +3,10 @@ import { Pagination } from "@/app/components/Pagination";
 import { RepoList } from "@/app/components/RepoList";
 import { Toolbar } from "@/app/components/Toolbar";
 import { fetchOrgRepoCount, fetchRepos, GitHubError, normalizePage } from "@/lib/github";
-import { pageHref } from "@/lib/pagination";
+import { hasNextPage, pageHref } from "@/lib/pagination";
 import { parseSort } from "@/lib/sort";
 
-// Server Component: the page number and sort both come from the URL
-// (`?page=N&sort=key`), data is fetched on the server, and the controls are real
-// links / a native select that update the URL — so there is no client-side
-// pagination or sorting state to manage.
+// Server Component: page number and sort come from the URL (?page=N&sort=key).
 export default async function Home({
   searchParams,
 }: {
@@ -30,11 +27,12 @@ export default async function Home({
 async function Repositories({ page, sort }: { page: number; sort: ReturnType<typeof parseSort> }) {
   try {
     // Fetch the page and the org-wide count in parallel; the count is best-effort
-    // (resolves to null on failure) so it never blocks or breaks the listing.
-    const [{ repos, hasPrev, hasNext }, count] = await Promise.all([
+    // (null on failure) and also lets us detect the last page exactly.
+    const [{ repos, hasPrev }, count] = await Promise.all([
       fetchRepos(page, sort),
       fetchOrgRepoCount(),
     ]);
+    const hasNext = hasNextPage(page, repos.length, count);
 
     return (
       <section

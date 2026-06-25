@@ -1,8 +1,5 @@
-// Data layer for the GitHub org repository listing.
-//
-// This module is the single place that knows how to talk to the GitHub REST API
-// and is deliberately free of React so it can be unit-tested in isolation. The
-// page component consumes `fetchRepos` and renders the result.
+// Data layer for the GitHub org repository listing — the only module that talks
+// to the GitHub REST API.
 
 import { DEFAULT_SORT, type SortOption } from "./sort";
 
@@ -34,12 +31,12 @@ export interface Repo {
   readonly updatedAt: string;
 }
 
-/** Result of fetching a single page, with the navigation state pre-computed. */
+/** Result of fetching a single page. `hasNext` is derived separately (see
+ * `hasNextPage`) because it needs the org-wide total, not just this page. */
 export interface ReposPage {
   readonly repos: Repo[];
   readonly page: number;
   readonly hasPrev: boolean;
-  readonly hasNext: boolean;
 }
 
 /** Thrown when the GitHub API responds with a non-OK status (e.g. 403/404). */
@@ -103,12 +100,8 @@ function toRepo(api: ApiRepo): Repo {
   };
 }
 
-/**
- * Fetch one page of repositories. Returns the parsed repos plus pre-computed
- * pagination state: `hasNext` is true when a full page came back (so another may
- * exist), `hasPrev` when we are past page 1. Throws `GitHubError` on a non-OK
- * response so the caller can render an error state instead of crashing.
- */
+// Fetch one page of repositories. Throws GitHubError on a non-OK response so the
+// caller can render an error state instead of crashing.
 export async function fetchRepos(
   page: number,
   sort: SortOption = DEFAULT_SORT,
@@ -132,21 +125,19 @@ export async function fetchRepos(
     repos,
     page: current,
     hasPrev: current > 1,
-    hasNext: repos.length === PER_PAGE,
   };
 }
 
-/**
- * The org's total public repository count (GitHub's `public_repos`), used for the
- * "N repositories" toolbar line. This is a best-effort enrichment: any failure
- * (non-OK status or network error) resolves to `null` so the page still renders
- * the list without a count, rather than failing the whole request.
- */
+// The org's total public repository count, for the toolbar line and to compute
+// whether a next page exists. Best-effort: any failure resolves to null so the
+// listing still renders.
 export async function fetchOrgRepoCount(): Promise<number | null> {
   try {
     const response = await fetch(`https://api.github.com/orgs/${ORG}`, {
       headers: { Accept: "application/vnd.github+json" },
-      next: { revalidate: 60 },
+      // The org repo count changes rarely; cache it for an hour so this second
+      // call barely dents the unauthenticated rate limit.
+      next: { revalidate: 3600 },
     });
     if (!response.ok) return null;
     const data = (await response.json()) as { public_repos?: number };

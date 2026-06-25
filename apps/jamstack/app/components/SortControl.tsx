@@ -4,15 +4,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SORT_OPTIONS } from "@/lib/sort";
 import { ChevronDownIcon, SortIcon } from "./icons";
 
-/**
- * The "Last pushed" sort dropdown. A leaf Client Component — the only interactive
- * piece on the page — so the page itself stays a Server Component.
- *
- * It is a native `<select>` for accessibility (keyboard-operable, labelled),
- * visually dressed with the sort + chevron Octicons. Changing it updates the
- * `?sort=` URL param via the router, which re-runs the server fetch; the page
- * is reset to 1 because a new sort order invalidates the current page number.
- */
+// The sort dropdown — a leaf Client Component, so the page stays a Server
+// Component. A native <select> for accessibility; changing it drives ?sort= via
+// the router, which re-runs the server fetch.
 export function SortControl({ current }: { current: string }) {
   const router = useRouter();
   const pathname = usePathname();
