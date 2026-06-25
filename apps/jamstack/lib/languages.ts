@@ -1,11 +1,7 @@
-// Language → dot colour, so the row can render GitHub's coloured language
-// indicator. The list repos endpoint returns the language *name* but not its
-// colour, so we map names to the canonical hex values from GitHub Linguist
-// (github/linguist `lib/linguist/languages.yml`, MIT licensed). Only the
-// languages likely to appear in the `github` org are included; anything else
-// (or a null language) gets a neutral fallback dot.
+// Language → dot colour. The repos API returns the language name but not its
+// colour, so we map names to GitHub Linguist's hex values (MIT). Unknown or null
+// languages get a neutral fallback dot.
 
-/** Neutral grey used when a language has no known colour. */
 export const LANGUAGE_FALLBACK_COLOR = "#8b949e";
 
 const LANGUAGE_COLORS: Readonly<Record<string, string>> = {

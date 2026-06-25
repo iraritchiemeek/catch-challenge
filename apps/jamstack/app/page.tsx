@@ -6,10 +6,7 @@ import { fetchOrgRepoCount, fetchRepos, GitHubError, normalizePage } from "@/lib
 import { pageHref } from "@/lib/pagination";
 import { parseSort } from "@/lib/sort";
 
-// Server Component: the page number and sort both come from the URL
-// (`?page=N&sort=key`), data is fetched on the server, and the controls are real
-// links / a native select that update the URL — so there is no client-side
-// pagination or sorting state to manage.
+// Server Component: page number and sort come from the URL (?page=N&sort=key).
 export default async function Home({
   searchParams,
 }: {

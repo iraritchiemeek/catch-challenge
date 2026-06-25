@@ -1,8 +1,5 @@
-// Data layer for the GitHub org repository listing.
-//
-// This module is the single place that knows how to talk to the GitHub REST API
-// and is deliberately free of React so it can be unit-tested in isolation. The
-// page component consumes `fetchRepos` and renders the result.
+// Data layer for the GitHub org repository listing — the only module that talks
+// to the GitHub REST API.
 
 import { DEFAULT_SORT, type SortOption } from "./sort";
 
@@ -103,12 +100,8 @@ function toRepo(api: ApiRepo): Repo {
   };
 }
 
-/**
- * Fetch one page of repositories. Returns the parsed repos plus pre-computed
- * pagination state: `hasNext` is true when a full page came back (so another may
- * exist), `hasPrev` when we are past page 1. Throws `GitHubError` on a non-OK
- * response so the caller can render an error state instead of crashing.
- */
+// Fetch one page of repositories. Throws GitHubError on a non-OK response so the
+// caller can render an error state instead of crashing.
 export async function fetchRepos(
   page: number,
   sort: SortOption = DEFAULT_SORT,
@@ -136,12 +129,9 @@ export async function fetchRepos(
   };
 }
 
-/**
- * The org's total public repository count (GitHub's `public_repos`), used for the
- * "N repositories" toolbar line. This is a best-effort enrichment: any failure
- * (non-OK status or network error) resolves to `null` so the page still renders
- * the list without a count, rather than failing the whole request.
- */
+// The org's total public repository count, for the toolbar line and to compute
+// whether a next page exists. Best-effort: any failure resolves to null so the
+// listing still renders.
 export async function fetchOrgRepoCount(): Promise<number | null> {
   try {
     const response = await fetch(`https://api.github.com/orgs/${ORG}`, {

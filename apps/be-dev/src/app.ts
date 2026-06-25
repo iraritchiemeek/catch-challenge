@@ -8,8 +8,8 @@ import { paginate, parsePagination, ValidationError } from "./pagination.js";
 
 const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
 
-// The frontend is a handful of static files. Read per request (they're tiny) so
-// a rebuilt stylesheet is picked up without restarting the dev server.
+// Read per request (the files are tiny) so a rebuilt stylesheet is picked up
+// without a restart.
 const STATIC_FILES: Record<string, { file: string; type: string }> = {
   "/": { file: "index.html", type: "text/html; charset=utf-8" },
   "/app.js": { file: "app.js", type: "text/javascript; charset=utf-8" },
@@ -17,16 +17,13 @@ const STATIC_FILES: Record<string, { file: string; type: string }> = {
   "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" },
 };
 
-// The Hono app is built by a factory that takes the database as a closure
-// dependency (rather than a module-level singleton), so tests can drive it with
-// an in-memory database via `app.request(...)`.
+// A factory taking the database as a closure dependency, so tests can drive it
+// with an in-memory database via app.request(...).
 export function createApp(db: DatabaseSync): Hono {
   const app = new Hono();
 
   app.get("/health", (c) => c.json({ status: "ok" }));
 
-  // Paginated customer records. `page`/`pageSize` are validated up front;
-  // malformed input is a 400 rather than a surprising default or a crash.
   app.get("/api/customers", (c) => {
     let page: number;
     let pageSize: number;

@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { type PaginationModel, paginationModel } from "@/lib/pagination";
 
-/**
- * Previous/Next pagination, styled after Tailwind Plus → Application UI →
- * Navigation → Pagination ("Simple card footer"). See docs/tailwind-plus-sources.md.
- * Controls are real `next/link` anchors so they are keyboard-operable and work
- * without client JS; at the ends, the unavailable direction renders as a disabled,
- * non-focusable span.
- */
+// Previous/Next links (Tailwind Plus "Simple card footer", see
+// docs/tailwind-plus-sources.md). Real anchors so they work without client JS; at
+// a boundary the unavailable direction renders as a disabled, non-focusable span.
 export function Pagination({
   page,
   count,

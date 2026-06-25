@@ -3,23 +3,8 @@ import type { Repo } from "@/lib/github";
 import { languageColor } from "@/lib/languages";
 import { DotFillIcon, ForkIcon, IssueIcon, LawIcon, StarIcon } from "./icons";
 
-/**
- * Repository list styled after GitHub's own org "Repositories" page
- * (https://github.com/orgs/github/repositories). Each row shows the name + a
- * visibility badge, the description, topic pills, and a metadata line
- * (language, license, forks, stars, issues, and a relative "Updated …" time).
- *
- * The activity-graph sparkline on the right of GitHub's rows is intentionally
- * omitted (out of scope). Only data-backed fields are rendered — there is no
- * separate pull-request count because the list API exposes only a combined
- * `open_issues_count`.
- *
- * The full-row overlay link (`absolute inset-x-0 …`) keeps the whole row a single
- * large click target with exactly one accessible link per row; topics and the
- * metadata are non-interactive text so nothing is hidden beneath the overlay.
- *
- * `now` is injected so the relative time is deterministic in tests.
- */
+// Repository list styled after GitHub's org Repositories page. `now` is injected
+// so the relative "Updated …" time is deterministic in tests.
 export function RepoList({ repos, now = new Date() }: { repos: Repo[]; now?: Date }) {
   return (
     // biome-ignore lint/a11y/noRedundantRoles: Tailwind's reset (`list-style: none`) drops list semantics in Safari/VoiceOver; the explicit role restores them.
@@ -37,6 +22,7 @@ function RepoRow({ repo, now }: { repo: Repo; now: Date }) {
       <div className="flex items-center gap-2">
         <h2 className="text-base font-semibold text-[#0969da]">
           <a href={repo.htmlUrl} className="hover:underline">
+            {/* Overlay makes the whole row clickable while keeping one link per row. */}
             <span className="absolute inset-x-0 -top-px bottom-0" />
             {repo.name}
           </a>

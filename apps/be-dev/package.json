@@ -9,7 +9,7 @@
   "scripts": {
     "db:import": "NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx src/import.ts",
     "build:css": "tailwindcss -i src/styles.css -o public/styles.css --minify",
-    "dev": "pnpm run build:css && NODE_OPTIONS=--disable-warning=ExperimentalWarning tsx watch src/server.ts",
+    "dev": "pnpm run db:import && pnpm run build:css && NODE_OPTIONS=--disable-warning=ExperimentalWarning PORT=${PORT:-3001} tsx watch src/server.ts",
     "build": "pnpm run build:css && tsc -p tsconfig.build.json",
     "start": "node --disable-warning=ExperimentalWarning dist/server.js",
     "typecheck": "tsc --noEmit"

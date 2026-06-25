@@ -4,11 +4,9 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { parse } from "csv-parse/sync";
 
-// The import "setup script": create the schema and load data/customers.csv into
-// SQLite. node:sqlite is built into Node (>=24) — no native build, no external
-// service — which is what keeps local setup to a single command.
+// Setup script: create the schema and load data/customers.csv into SQLite.
 
-/** Path to the SQLite database file, overridable via DB_PATH for tests/ops. */
+// Overridable via DB_PATH for tests.
 export const DB_PATH = process.env.DB_PATH ?? join(here(), "..", "data", "customers.db");
 const CSV_PATH = join(here(), "..", "data", "customers.csv");
 
@@ -30,7 +28,6 @@ export function openDb(path: string): DatabaseSync {
   return new DatabaseSync(path);
 }
 
-/** Create the customers table if it doesn't exist. Idempotent. */
 export function createSchema(db: DatabaseSync): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS customers (
@@ -48,11 +45,9 @@ export function createSchema(db: DatabaseSync): void {
   `);
 }
 
-/**
- * Parse CSV text and replace the contents of the customers table with it.
- * Returns the number of rows imported. Empty fields become SQL NULL. Runs in a
- * single transaction so a malformed file can't leave a half-loaded table.
- */
+// Replace the customers table contents with the parsed CSV, returning the row
+// count. Empty fields become NULL. Runs in a transaction so a malformed file
+// can't leave a half-loaded table.
 export function importCsv(db: DatabaseSync, csv: string): number {
   const rows = parse(csv, { columns: true, skip_empty_lines: true, trim: true }) as Record<
     string,
@@ -68,7 +63,6 @@ export function importCsv(db: DatabaseSync, csv: string): number {
   try {
     db.exec("DELETE FROM customers");
     for (const row of rows) {
-      // Empty string → NULL; everything else is stored verbatim.
       insert.run(...COLUMNS.map((col) => (row[col] === "" ? null : (row[col] ?? null))));
     }
     db.exec("COMMIT");

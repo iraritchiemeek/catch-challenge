@@ -1,16 +1,9 @@
-// GitHub's own icons (Primer Octicons, MIT licensed —
-// https://github.com/primer/octicons). The 16px path data is inlined rather than
-// pulling in the @primer/octicons-react dependency, since the row needs only a
-// handful of glyphs. All are decorative (`aria-hidden`); their meaning is carried
-// by the adjacent text/aria-labels, so screen readers don't announce them.
+// Primer Octicons (MIT) inlined as SVG paths rather than depending on
+// @primer/octicons-react for a handful of glyphs. All are decorative (aria-hidden).
 
-import type { SVGProps } from "react";
+type IconProps = { className?: string | undefined };
 
-// `| undefined` is explicit so callers can forward an optional `className`
-// straight through under `exactOptionalPropertyTypes`.
-type IconProps = { className?: string | undefined } & Pick<SVGProps<SVGSVGElement>, "className">;
-
-/** Shared 16×16 Octicon frame. */
+// Shared 16×16 Octicon frame.
 function Octicon({
   className,
   children,

@@ -1,13 +1,10 @@
-// Pagination input handling, kept separate from HTTP and SQL so the rules are
-// unit-testable in isolation and live in exactly one place (the API and the
-// page-meta both go through here).
+// Pagination input handling, kept separate from HTTP and SQL.
 
-/** Default rows per page when the client doesn't ask for a size. */
 export const DEFAULT_PAGE_SIZE = 25;
-/** Upper bound on rows per page, so a client can't request an unbounded scan. */
+// Upper bound, so a client can't request an unbounded scan.
 export const MAX_PAGE_SIZE = 100;
 
-/** Thrown for malformed client input; the API maps this to a 400 response. */
+// Thrown for malformed client input; the API maps this to a 400.
 export class ValidationError extends Error {
   override readonly name = "ValidationError";
 }
@@ -40,18 +37,15 @@ function parsePositiveInt(value: string | undefined, field: string): number | un
   return n;
 }
 
-/**
- * Validate raw `?page=&pageSize=` query values into a `Pagination`.
- * Garbage values throw `ValidationError`; an over-large `pageSize` is clamped
- * to `MAX_PAGE_SIZE` rather than rejected (a generous request is not an error).
- */
+// Validate raw ?page=&pageSize= into a Pagination. Garbage throws; an over-large
+// pageSize is clamped to MAX_PAGE_SIZE rather than rejected.
 export function parsePagination(query: { page?: string; pageSize?: string }): Pagination {
   const page = parsePositiveInt(query.page, "page") ?? 1;
   const requested = parsePositiveInt(query.pageSize, "pageSize") ?? DEFAULT_PAGE_SIZE;
   return { page, pageSize: Math.min(requested, MAX_PAGE_SIZE) };
 }
 
-/** Derive page metadata (offsets, navigation flags) from a known total. */
+// Derive page metadata (offset, navigation flags) from a known total.
 export function paginate(total: number, page: number, pageSize: number): PageMeta {
   const totalPages = Math.ceil(total / pageSize);
   return {
