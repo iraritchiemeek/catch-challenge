@@ -11,6 +11,14 @@ export interface PaginationModel {
   readonly rangeEnd: number;
 }
 
+// Whether a page after `page` exists. Uses the org total when known so the last
+// page is detected exactly (even when the total is a multiple of PER_PAGE);
+// otherwise falls back to "a full page came back, so there may be more".
+export function hasNextPage(page: number, received: number, total: number | null): boolean {
+  if (total !== null) return page * PER_PAGE < total;
+  return received === PER_PAGE;
+}
+
 // Build the query string for a page, preserving the active sort. The default sort
 // is omitted to keep URLs clean (a bare ?page=N).
 export function pageHref(page: number, sortKey?: string): string {

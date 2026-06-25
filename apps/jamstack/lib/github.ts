@@ -31,12 +31,12 @@ export interface Repo {
   readonly updatedAt: string;
 }
 
-/** Result of fetching a single page, with the navigation state pre-computed. */
+/** Result of fetching a single page. `hasNext` is derived separately (see
+ * `hasNextPage`) because it needs the org-wide total, not just this page. */
 export interface ReposPage {
   readonly repos: Repo[];
   readonly page: number;
   readonly hasPrev: boolean;
-  readonly hasNext: boolean;
 }
 
 /** Thrown when the GitHub API responds with a non-OK status (e.g. 403/404). */
@@ -125,7 +125,6 @@ export async function fetchRepos(
     repos,
     page: current,
     hasPrev: current > 1,
-    hasNext: repos.length === PER_PAGE,
   };
 }
 
@@ -136,7 +135,9 @@ export async function fetchOrgRepoCount(): Promise<number | null> {
   try {
     const response = await fetch(`https://api.github.com/orgs/${ORG}`, {
       headers: { Accept: "application/vnd.github+json" },
-      next: { revalidate: 60 },
+      // The org repo count changes rarely; cache it for an hour so this second
+      // call barely dents the unauthenticated rate limit.
+      next: { revalidate: 3600 },
     });
     if (!response.ok) return null;
     const data = (await response.json()) as { public_repos?: number };

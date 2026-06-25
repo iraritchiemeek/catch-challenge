@@ -117,18 +117,11 @@ describe("fetchRepos", () => {
     expect(spy).toHaveBeenCalledWith(buildReposUrl(1, parseSort("name")), expect.anything());
   });
 
-  it("reports a next page when a full page of results comes back", async () => {
+  it("sets hasPrev only when past the first page", async () => {
     stubFetch(makeApiPage(PER_PAGE));
-    const result = await fetchRepos(1);
-    expect(result.hasNext).toBe(true);
-    expect(result.hasPrev).toBe(false);
-  });
-
-  it("reports no next page when a partial page comes back", async () => {
-    stubFetch(makeApiPage(4));
-    const result = await fetchRepos(2);
-    expect(result.hasNext).toBe(false);
-    expect(result.hasPrev).toBe(true);
+    expect((await fetchRepos(1)).hasPrev).toBe(false);
+    stubFetch(makeApiPage(PER_PAGE));
+    expect((await fetchRepos(2)).hasPrev).toBe(true);
   });
 
   it("clamps page numbers below 1 up to page 1 (no previous link)", async () => {

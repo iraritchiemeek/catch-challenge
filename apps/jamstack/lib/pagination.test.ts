@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { pageHref, paginationModel } from "./pagination";
+import { hasNextPage, pageHref, paginationModel } from "./pagination";
+
+describe("hasNextPage", () => {
+  it("uses the org total to detect the last page exactly", () => {
+    // 25 repos, 10 per page → pages 1 and 2 have a next, page 3 (last) does not.
+    expect(hasNextPage(1, 10, 25)).toBe(true);
+    expect(hasNextPage(2, 10, 25)).toBe(true);
+    expect(hasNextPage(3, 5, 25)).toBe(false);
+  });
+
+  it("reports no next page when the total is an exact multiple of the page size", () => {
+    // The off-by-one the heuristic got wrong: a full last page must still stop.
+    expect(hasNextPage(5, 10, 50)).toBe(false);
+    expect(hasNextPage(4, 10, 50)).toBe(true);
+  });
+
+  it("falls back to 'a full page came back' when the total is unknown", () => {
+    expect(hasNextPage(1, 10, null)).toBe(true);
+    expect(hasNextPage(2, 4, null)).toBe(false);
+  });
+});
 
 describe("pageHref", () => {
   it("encodes the page as a query string", () => {
